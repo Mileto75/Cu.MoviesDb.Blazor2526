@@ -1,5 +1,6 @@
 ﻿@page "/movies"
 @inject IMovieService MovieService
+@inject ICompanyService CompanyService
 <h3>Movies</h3>
 @if(movieModels is null)
 { 
@@ -9,15 +10,116 @@
 }
 else
 { 
-    @foreach(var movie in movieModels)
-    { 
-        <div class="col col-lg-6 border border-1 m-1 p-1">
-            <p>@movie.Title</p>
-        </div>
+<div class="row">
+    @if (newMovie is not null)
+    {
+        //show form
+        <EditForm Model="@newMovie" OnValidSubmit="Save" FormName="MovieEntryForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+
+            <div class="mb-3">
+                <label for="title" class="form-label">Movie Title</label>
+                <InputText id="title" @bind-Value="newMovie.Title" class="form-control" placeholder="Enter movie title" />
+                <ValidationMessage For="@(() => newMovie.Title)" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label for="releaseDate" class="form-label">Release Date</label>
+                <InputDate id="releaseDate" @bind-Value="newMovie.ReleaseDate" class="form-control" />
+                <ValidationMessage For="@(() => newMovie.ReleaseDate)" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label for="image" class="form-label">Image URL</label>
+                <InputText id="image" @bind-Value="newMovie.Image" class="form-control" placeholder="https://..." />
+                <ValidationMessage For="@(() => newMovie.Image)" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label for="companyId" class="form-label">Company ID</label>
+                @if (companyModels is null)
+                {
+                    <div class="spinner-border text-primary" role="status">
+
+                    </div>
+                }
+                else
+                {
+                    <InputSelect id="companyId" @bind-Value="newMovie.CompanyId" class="form-control">
+                        @foreach (var company in companyModels)
+                        {
+                            <option value="@company.Id">@company.Name</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => newMovie.CompanyId)" class="text-danger" />
+                }
+                @*File upload*@
+                <div class="mb-3">
+                    <label for="image" class="form-label">Image URL</label>
+                    <InputFile OnChange="HandleFile" class="form-control" />
+                    <ValidationMessage For="@(() => newMovie.Image)" class="text-danger" />
+                </div>
+
+            </div>
+            <button type="submit" class="btn btn-primary">Save Movie</button>
+            <button type="button" class="btn btn-primary" @onclick="Cancel">Cancel</button>
+        </EditForm>
     }
+    else
+    {
+        <button type="button" class="btn btn-outline-info" @onclick="CreateMovie">New</button>
+        @foreach (var movie in movieModels)
+        {
+            <div class="col col-lg-6 border border-1 m-1 p-1">
+                <p>@movie.Title</p>
+            </div>
+        }
+    }
+</div>
 }
 @code {      
     private IEnumerable<MovieModel> movieModels;
+    private IEnumerable<CompanyModel> companyModels;
+    private NewOrUpdateMovieModel newMovie;
+    private IBrowserFile browserFile;
+
+    private async Task HandleFile(InputFileChangeEventArgs inputFileChangeEventArgs)
+    {
+        //get the file from the file input element
+        browserFile = inputFileChangeEventArgs.File;
+        //check the type "img/jpeg"
+        //upload to a temp location
+        //generate random filename
+        //path to temp folder
+        //path to file
+        //copy file to temp location
+
+    }
+    private void Cancel()
+    {
+        newMovie = null;
+        //delete temp folder
+    }
+    private async Task Save()
+    {
+        //copy file to wwwroot/images
+        //delete temp
+        //store the movie
+    }
+    private async Task CreateMovie()
+    {
+        newMovie = new();
+        var result = await CompanyService.GetAllAsync();
+        if (result.IsSuccess)
+        {
+            companyModels = result.Data.Select(c => new CompanyModel
+            {
+                Id = c.Id,
+                Name = c.Name
+            });
+        }
+    }
     protected override async Task OnInitializedAsync()
     {
         var result = await MovieService.GetAllAsync();

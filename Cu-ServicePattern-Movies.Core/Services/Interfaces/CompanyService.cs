@@ -12,6 +12,7 @@ namespace Cu_ServicePattern_Movies.Core.Services.Interfaces
 {
     public class CompanyService : ICompanyService
     {
+        //also refactor this to use Factory pattern
         private readonly MovieDbContext _movieDbContext;
 
         public CompanyService(MovieDbContext movieDbContext)

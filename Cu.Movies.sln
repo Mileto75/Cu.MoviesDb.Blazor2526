@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36623.8
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cu-ServicePattern-Movies.Core", "Cu-ServicePattern-Movies.Core\Cu-ServicePattern-Movies.Core.csproj", "{95023315-0649-18BC-29FD-E23740C97252}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{95023315-0649-18BC-29FD-E23740C97252}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95023315-0649-18BC-29FD-E23740C97252}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95023315-0649-18BC-29FD-E23740C97252}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95023315-0649-18BC-29FD-E23740C97252}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B715E863-6AFC-4786-B35F-C8C5209B964B}
+	EndGlobalSection
+EndGlobal

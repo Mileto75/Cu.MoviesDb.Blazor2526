@@ -5,6 +5,8 @@ VisualStudioVersion = 17.14.36623.8
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cu-ServicePattern-Movies.Core", "Cu-ServicePattern-Movies.Core\Cu-ServicePattern-Movies.Core.csproj", "{95023315-0649-18BC-29FD-E23740C97252}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Movies.Blazor", "Movies.Blazor\Movies.Blazor.csproj", "{61426706-6C34-49E2-8FCF-E56A95A235E7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{95023315-0649-18BC-29FD-E23740C97252}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95023315-0649-18BC-29FD-E23740C97252}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95023315-0649-18BC-29FD-E23740C97252}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61426706-6C34-49E2-8FCF-E56A95A235E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61426706-6C34-49E2-8FCF-E56A95A235E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61426706-6C34-49E2-8FCF-E56A95A235E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61426706-6C34-49E2-8FCF-E56A95A235E7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

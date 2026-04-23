@@ -1,4 +1,5 @@
-﻿using Cu_ServicePattern_Movies.Core.Entities;
+﻿using Cu_ServicePattern_Movies.Core.Data;
+using Cu_ServicePattern_Movies.Core.Entities;
 using Cu_ServicePattern_Movies.Core.Services.Models;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -18,7 +19,7 @@ namespace Cu_ServicePattern_Movies.Core.Services.Interfaces
         Task<ResultModel<Movie>> UpdateAsync(int id,DateTime releaseDate ,string title, decimal price, int companyId, string image,
             IEnumerable<int> actorIds, IEnumerable<int> directorIds);
         Task<bool> DeleteAsync(int id);
-        IQueryable<Movie> GetAll();
-        Task<bool> SaveChangesAsync();
+        Task<IQueryable<Movie>> GetAll();
+        Task<bool> SaveChangesAsync(MovieDbContext movieDbContext);
     }
 }

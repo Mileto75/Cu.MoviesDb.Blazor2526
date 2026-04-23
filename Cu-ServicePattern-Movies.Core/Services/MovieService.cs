@@ -16,10 +16,10 @@ namespace Cu_ServicePattern_Movies.Core.Services
 {
     public class MovieService : IMovieService
     {
-        private readonly DbContextFactory<MovieDbContext> _dbContextFactory;
+        private readonly IDbContextFactory<MovieDbContext> _dbContextFactory;
         
 
-        public MovieService(DbContextFactory<MovieDbContext> dbContextFactory)
+        public MovieService(IDbContextFactory<MovieDbContext> dbContextFactory)
         {
             _dbContextFactory = dbContextFactory;
         }
@@ -52,7 +52,7 @@ namespace Cu_ServicePattern_Movies.Core.Services
                 //add to context
                 movieDbContext.Movies.Add(movie);
                 //savechanges
-                if (await SaveChangesAsync())
+                if (await SaveChangesAsync(movieDbContext))
                 {
                     return new ResultModel<Movie>
                     {
@@ -66,65 +66,77 @@ namespace Cu_ServicePattern_Movies.Core.Services
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var movie = await GetbyIdAsync(id);
-            if(movie.IsSuccess)
+            using (var movieDbContext = await _dbContextFactory.CreateDbContextAsync())
             {
-                _movieDbContext.Movies.Remove(movie.Data);
-                //savechanges
-                return await SaveChangesAsync();
+                var movie = await GetbyIdAsync(id);
+                if (movie.IsSuccess)
+                {
+                    movieDbContext.Movies.Remove(movie.Data);
+                    //savechanges
+                    return await SaveChangesAsync(movieDbContext);
+                }
+                return false;
             }
-            return false;
         }
 
-        public IQueryable<Movie> GetAll()
+        public async Task<IQueryable<Movie>> GetAll()
         {
-            return _movieDbContext.Movies.AsQueryable();
+            using (var movieDbContext = await _dbContextFactory.CreateDbContextAsync())
+            {
+                return movieDbContext.Movies.AsQueryable();
+            }
         }
 
         public async Task<ResultModel<IEnumerable<Movie>>> GetAllAsync()
         {
-            var movies = await _movieDbContext.Movies
+            using (var movieDbContext = await _dbContextFactory.CreateDbContextAsync())
+            {
+                var movies = await movieDbContext.Movies
                 .Include(m => m.Company)
                 .Include(m => m.Actors)
                 .Include(m => m.Directors)
                 .Include(m => m.Ratings)
                 .AsSplitQuery()
                 .ToListAsync();
-            return new ResultModel<IEnumerable<Movie>>
-            {
-                IsSuccess = true,
-                Data = movies
-            };
+                return new ResultModel<IEnumerable<Movie>>
+                {
+                    IsSuccess = true,
+                    Data = movies
+                };
+            }
         }
 
         public async Task<ResultModel<Movie>> GetbyIdAsync(int id)
         {
-            var movie = await _movieDbContext.Movies
+            using (var movieDbContext = await _dbContextFactory.CreateDbContextAsync())
+            {
+                var movie = await movieDbContext.Movies
                .Include(m => m.Company)
                .Include(m => m.Actors)
                .Include(m => m.Directors)
                .Include(m => m.Ratings)
                .FirstOrDefaultAsync(m => m.Id == id);
-            if(movie is null)
-            {
-                return new ResultModel<Movie> 
+                if (movie is null)
                 {
-                    IsSuccess = false,
-                    Errors = new List<string>{ "Movie not found!"}
+                    return new ResultModel<Movie>
+                    {
+                        IsSuccess = false,
+                        Errors = new List<string> { "Movie not found!" }
+                    };
+                }
+                return new ResultModel<Movie>
+                {
+                    IsSuccess = true,
+                    Data = movie
                 };
             }
-            return new ResultModel<Movie>
-            {
-                IsSuccess = true,
-                Data = movie
-            };
         }
 
-        public async Task<bool> SaveChangesAsync()
+        public async Task<bool> SaveChangesAsync(MovieDbContext movieDbContext)
         {
             try
             {
-                await _movieDbContext.SaveChangesAsync();
+                await movieDbContext.SaveChangesAsync();
                 return true;
             }
             catch (DbUpdateException dbUpdateException)
@@ -137,51 +149,53 @@ namespace Cu_ServicePattern_Movies.Core.Services
         public async Task<ResultModel<Movie>> UpdateAsync(int id,DateTime releasedate, string title, decimal price, int companyId, string image, IEnumerable<int> actorIds, IEnumerable<int> directorIds)
         {
             //update
-            var result = await GetbyIdAsync(id);
-            if (!result.IsSuccess)
+            using (var movieDbContext = await _dbContextFactory.CreateDbContextAsync())
             {
+                var result = await GetbyIdAsync(id);
+                if (!result.IsSuccess)
+                {
+                    return new ResultModel<Movie> { IsSuccess = false };
+                }
+                var movie = result.Data;
+                //edit the properties
+                movie.Title = title;
+                movie.ReleaseDate = releasedate;
+                movie.CompanyId = companyId;
+                movie.Price = price;
+                //actors
+                movie.Actors.Clear();
+                movie.Actors = await movieDbContext
+                    .Actors
+                    .Where(m => actorIds.Contains(m.Id)).ToListAsync();
+                //Directors
+                movie.Directors.Clear();
+                //get the list of the selected directors
+                movie.Directors = await movieDbContext
+                    .Directors
+                    .Where(d => directorIds.Contains(d.Id)).ToListAsync();
+                //image
+                if (image != null)
+                {
+                    if (movie.Image != null)
+                    {
+                        movie.Image = image;
+                    }
+                    else
+                    {
+                        movie.Image = image;
+                    }
+                }
+                //savechanges
+                if (await SaveChangesAsync(movieDbContext))
+                {
+                    return new ResultModel<Movie>
+                    {
+                        IsSuccess = true,
+                        Data = movie
+                    };
+                }
                 return new ResultModel<Movie> { IsSuccess = false };
             }
-            var movie = result.Data;
-            //edit the properties
-            movie.Title = title;
-            movie.ReleaseDate = releasedate;
-            movie.CompanyId = companyId;
-            movie.Price = price;
-            //actors
-            movie.Actors.Clear();
-            movie.Actors = await _movieDbContext
-                .Actors
-                .Where(m => actorIds.Contains(m.Id)).ToListAsync();
-            //Directors
-            movie.Directors.Clear();
-            //get the list of the selected directors
-            movie.Directors = await _movieDbContext
-                .Directors
-                .Where(d => directorIds.Contains(d.Id)).ToListAsync();
-            //image
-            if (image != null)
-            {
-                if (movie.Image != null)
-                {
-                    movie.Image = image;
-                }
-                else
-                {
-                    movie.Image = image;
-                }
-
-            }
-            //savechanges
-            if(await SaveChangesAsync())
-            {
-                return new ResultModel<Movie>
-                {
-                    IsSuccess = true,
-                    Data = movie
-                };
-            }
-            return new ResultModel<Movie> { IsSuccess = false };
         }
     }
 }

@@ -1,3 +1,5 @@
+using Cu_ServicePattern_Movies.Core.Data;
+using Microsoft.EntityFrameworkCore;
 using Movies.Blazor.Components;
 
 namespace Movies.Blazor
@@ -9,6 +11,9 @@ namespace Movies.Blazor
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            // Add DContext
+            builder.Services.AddDbContextFactory<MovieDbContext>(options
+                => options.UseSqlServer(builder.Configuration.GetConnectionString("MoviesDb")));
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 

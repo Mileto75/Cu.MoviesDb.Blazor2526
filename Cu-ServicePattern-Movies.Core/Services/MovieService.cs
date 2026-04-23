@@ -5,6 +5,7 @@ using Cu_ServicePattern_Movies.Core.Services.Interfaces;
 using Cu_ServicePattern_Movies.Core.Services.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,49 +16,52 @@ namespace Cu_ServicePattern_Movies.Core.Services
 {
     public class MovieService : IMovieService
     {
-        private readonly MovieDbContext _movieDbContext;
+        private readonly DbContextFactory<MovieDbContext> _dbContextFactory;
         
 
-        public MovieService(MovieDbContext movieDbContext)
+        public MovieService(DbContextFactory<MovieDbContext> dbContextFactory)
         {
-            _movieDbContext = movieDbContext;
+            _dbContextFactory = dbContextFactory;
         }
 
         public async Task<ResultModel<Movie>> CreateAsync(string title,DateTime releaseDate, 
             decimal price, int companyId, string image, IEnumerable<int> actorIds, 
             IEnumerable<int> directorIds)
         {
-            //create the movie
-            var movie = new Movie();
-            movie.Title = title;
-            movie.Price = price;
-            movie.ReleaseDate = releaseDate;
-            movie.CompanyId = companyId;
-            //actors
-            movie.Actors = await _movieDbContext
-                .Actors
-                .Where(m => actorIds.Contains(m.Id)).ToListAsync();
-            //Directors
-            movie.Directors = await _movieDbContext
-                .Directors
-                .Where(d => directorIds.Contains(d.Id)).ToListAsync();
-            //image
-            if (image != null)
+            using (var movieDbContext = await _dbContextFactory.CreateDbContextAsync())
             {
-                movie.Image = image;
-            }
-            //add to context
-            _movieDbContext.Movies.Add(movie);
-            //savechanges
-            if(await SaveChangesAsync())
-            {
-                return new ResultModel<Movie>
+                //create the movie
+                var movie = new Movie();
+                movie.Title = title;
+                movie.Price = price;
+                movie.ReleaseDate = releaseDate;
+                movie.CompanyId = companyId;
+                //actors
+                movie.Actors = await movieDbContext
+                    .Actors
+                    .Where(m => actorIds.Contains(m.Id)).ToListAsync();
+                //Directors
+                movie.Directors = await movieDbContext
+                    .Directors
+                    .Where(d => directorIds.Contains(d.Id)).ToListAsync();
+                //image
+                if (image != null)
                 {
-                    IsSuccess = true,
-                    Data = movie
-                };
+                    movie.Image = image;
+                }
+                //add to context
+                movieDbContext.Movies.Add(movie);
+                //savechanges
+                if (await SaveChangesAsync())
+                {
+                    return new ResultModel<Movie>
+                    {
+                        IsSuccess = true,
+                        Data = movie
+                    };
+                }
+                return new ResultModel<Movie> { IsSuccess = false };
             }
-            return new ResultModel<Movie> { IsSuccess = false };
         }
 
         public async Task<bool> DeleteAsync(int id)

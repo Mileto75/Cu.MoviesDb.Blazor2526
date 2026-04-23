@@ -16,12 +16,11 @@ namespace Cu_ServicePattern_Movies.Core.Services
     public class MovieService : IMovieService
     {
         private readonly MovieDbContext _movieDbContext;
-        private readonly IFileService _fileService;
+        
 
-        public MovieService(MovieDbContext movieDbContext, IFileService fileService)
+        public MovieService(MovieDbContext movieDbContext)
         {
             _movieDbContext = movieDbContext;
-            _fileService = fileService;
         }
 
         public async Task<ResultModel<Movie>> CreateAsync(string title,DateTime releaseDate, 
@@ -66,11 +65,6 @@ namespace Cu_ServicePattern_Movies.Core.Services
             var movie = await GetbyIdAsync(id);
             if(movie.IsSuccess)
             {
-                //delete the movie image
-                if (!String.IsNullOrEmpty(movie.Data.Image))
-                {
-                    _fileService.Delete(movie.Data.Image);
-                }
                 _movieDbContext.Movies.Remove(movie.Data);
                 //savechanges
                 return await SaveChangesAsync();
